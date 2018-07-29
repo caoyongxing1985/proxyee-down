@@ -1,5 +1,6 @@
 package lee.study.down.gui;
 
+import com.github.monkeywie.proxyee.crt.CertUtil;
 import com.sun.javafx.application.ParametersImpl;
 import java.awt.CheckboxMenuItem;
 import java.awt.Desktop;
@@ -66,7 +67,6 @@ import lee.study.down.util.ConfigUtil;
 import lee.study.down.util.FileUtil;
 import lee.study.down.util.OsUtil;
 import lee.study.down.util.PathUtil;
-import lee.study.proxyee.crt.CertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -540,11 +540,17 @@ public class HttpDownApplication extends Application {
       paste.setOnAction(e -> {
         Object content = clipboard.getContent(DataFormat.PLAIN_TEXT);
         if (content != null) {
-          webView.getEngine().executeScript("if(document.activeElement.nodeName.toUpperCase()=='INPUT'){"
-              + "document.activeElement.value='" + content + "';"
+          webView.getEngine().executeScript("if(document.activeElement.selectionStart>=0){"
+              + "var value = document.activeElement.value;"
+              + "if(!value){"
+              + " document.activeElement.value='" + content + "';"
+              + "}else{"
+              + " document.activeElement.value=value.substring(0,document.activeElement.selectionStart)+'" + content + "'+value.substring(document.activeElement.selectionEnd);"
+              + "}"
               + "var event = document.createEvent('Event');"
               + "event.initEvent('input', true, true);"
-              + "document.activeElement.dispatchEvent(event);}");
+              + "document.activeElement.dispatchEvent(event);"
+              + "}");
         }
       });
       contextMenu.getItems().addAll(copy, paste);
